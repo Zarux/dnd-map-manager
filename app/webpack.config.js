@@ -12,19 +12,7 @@ module.exports = {
             {
                 test: /\.jsx?$/,         // Match both .js and .jsx files
                 exclude: /node_modules/,
-                loader: "babel-loader",
-                query:
-                    {
-                        presets:['react']
-                    }
-            },
-            {
-                test: /\.scss$/,
-                loaders: ['style-loader', 'css-loader', 'sass-loader'],
-            },
-            {
-                test: /\.css$/,
-                loaders: ['style-loader', 'css-loader'],
+                loader: "babel-loader"
             }
         ],
     },
