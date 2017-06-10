@@ -30,7 +30,8 @@ export default class ImageUpload extends Component {
         if(!this.imageError && this.files.length > 0){
             socket.emit("save-images", {
                 files: this.files
-            })
+            });
+            this.fileInput.value = "";
         }
     };
 
