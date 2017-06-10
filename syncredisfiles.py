@@ -44,7 +44,7 @@ for key in keys:
 	elif key_type == "room":
 		data = r.lrange(key, 0, -1)
 		for idx, val in enumerate(data):
-			img_data = json.loads(val)
+			img_data = json.loads(str(val)[2:-1])
 			if not os.path.isfile(img_data["full"]) and not os.path.isfile(img_data["thumb"]):
 				r.lrem(key, 0, val)
 			elif not os.path.isfile(img_data["full"]) and os.path.isfile(img_data["thumb"]):
