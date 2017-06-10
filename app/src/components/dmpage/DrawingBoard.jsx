@@ -243,6 +243,7 @@ export default class DrawingBoard extends Component {
                             label="&#9650;"
                             onClick={()=>{this.addShape('triangle')}}
                         />
+                        <ToolbarSeparator style={separatorStyle} />
                         <FlatButton
                             label={this.state.drawingMode ? "Selection" : "FreeDraw"}
                             onClick={()=>{
@@ -254,6 +255,7 @@ export default class DrawingBoard extends Component {
                         <input
                             type="number"
                             defaultValue={10}
+                            disabled={this.canvas ? !this.canvas.isDrawingMode : true}
                             style={{
                                 width: 50
                             }}
