@@ -32,6 +32,8 @@ export default class ImageUpload extends Component {
                 files: this.files
             });
             this.fileInput.value = "";
+            this.files = [];
+            this.setState({...this.state, chosenImage: null});
         }
     };
 
