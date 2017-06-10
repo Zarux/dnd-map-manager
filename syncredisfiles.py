@@ -83,7 +83,6 @@ for d in fulldirs:
 	images = os.listdir(os.path.join(os.getcwd(), "server/images/full/", d))
 	for img in images:
 		full_img = os.path.normpath(os.path.join(os.getcwd(), "server/images/full/", d, img))
-		print(full_img)
 		if full_img not in safe_files:
 			os.unlink(full_img)
 			print("Deleted %s" % full_img)
