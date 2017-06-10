@@ -93,7 +93,12 @@ io.sockets.on('connection', function (socket) {
             });
 
             for(let i = 0; i < data.length; i++){
-                const content = fs.readFileSync(data[i].thumb);
+                let content;
+                try {
+                    content = fs.readFileSync(data[i].thumb);
+                }catch(e){
+                    continue
+                }
                 if(!fileNames.includes(data[i].filename)) {
                     fileNames.push(data[i].filename);
                     files.push({name: data[i].filename, image: content.toString('base64')});
