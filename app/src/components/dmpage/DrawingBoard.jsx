@@ -115,7 +115,7 @@ export default class DrawingBoard extends Component {
             width: this.paper.parentNode.offsetWidth
         });
         fabric.Object.prototype.transparentCorners = false;
-        this.canvas.freeDrawingBrush.width = 100;
+        this.canvas.freeDrawingBrush.width = 10;
         socket.on('full-image', data => {
             if(!this.canvas) return;
             const img = new Image();
@@ -237,7 +237,7 @@ export default class DrawingBoard extends Component {
                             type="number"
                             defaultValue={10}
                             style={{
-                                width: 30
+                                width: 50
                             }}
                             readOnly={this.canvas ? !this.canvas.isDrawingMode : true}
                             onChange={(event)=>{
@@ -253,7 +253,10 @@ export default class DrawingBoard extends Component {
                                 top: 50,
                                 zIndex: 9999,
                                 position:"absolute"}}>
-                                <CompactPicker onChange={(color, event)=>{this.fill = color.hex}} />
+                                <CompactPicker onChange={(color, event)=>{
+                                    this.fill = color.hex;
+                                    this.canvas.freeDrawingBrush.color = color.hex;
+                                }} />
                             </div>
                         ): ""}
                         <FlatButton
