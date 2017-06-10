@@ -49,17 +49,17 @@ for key in keys:
 			img_data = json.loads(str(val)[2:-1])
 			if not os.path.isfile(img_data["full"]) and not os.path.isfile(img_data["thumb"]):
 				r.lrem(key, 0, val)
-				print("Deleted value for %s" % img_data["name"])
+				print("Deleted value for %s" % img_data["filename"])
 			elif not os.path.isfile(img_data["full"]) and os.path.isfile(img_data["thumb"]):
 				os.unlink(img_data["thumb"])
-				print("Deleted thumbnail for %s" % img_data["name"])
+				print("Deleted thumbnail for %s" % img_data["filename"])
 				r.lrem(key, 0, val)
-				print("Deleted value for %s" % img_data["name"])
+				print("Deleted value for %s" % img_data["filename"])
 			elif os.path.isfile(img_data["full"]) and not os.path.isfile(img_data["thumb"]):
 				os.unlink(img_data["full"])
-				print("Deleted full for %s" % img_data["name"])
+				print("Deleted full for %s" % img_data["filename"])
 				r.lrem(key, 0, val)
-				print("Deleted value for %s" % img_data["name"])
+				print("Deleted value for %s" % img_data["filename"])
 			else:
 				safe_files.append(os.path.normpath(img_data["full"]))
 				safe_files.append(os.path.normpath(img_data["thumb"]))
@@ -70,7 +70,7 @@ fulldirs = [name for name in os.listdir("./server/images/full/") if os.path.isdi
 rooms = {}
 
 print("SAFE FILES: ")
-print(safe_files)
+[print("\t%s" % safe) for safe in safe_files]
 for d in thumbdirs:
 	images = os.listdir(os.path.join(os.getcwd(),"server/images/thumbs/", d))
 	for img in images:
