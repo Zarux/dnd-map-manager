@@ -37,44 +37,54 @@ for key in keys:
 		continue
 	elif key_type == "full":
 		data = r.get(key)
-		if not os.path.isfile(data):
-			r.delete(key)
+		if os.path.isfile(data):
+			safe_files.append(os.path.normpath(data))
 		else:
-			safe_files.append(data)
+			print("Deleted key: %s" % key)
+			r.delete(key)
+			
 	elif key_type == "room":
 		data = r.lrange(key, 0, -1)
 		for idx, val in enumerate(data):
 			img_data = json.loads(str(val)[2:-1])
 			if not os.path.isfile(img_data["full"]) and not os.path.isfile(img_data["thumb"]):
 				r.lrem(key, 0, val)
+				print("Deleted value for %s" % img_data["name"])
 			elif not os.path.isfile(img_data["full"]) and os.path.isfile(img_data["thumb"]):
 				os.unlink(img_data["thumb"])
+				print("Deleted thumbnail for %s" % img_data["name"])
 				r.lrem(key, 0, val)
+				print("Deleted value for %s" % img_data["name"])
 			elif os.path.isfile(img_data["full"]) and not os.path.isfile(img_data["thumb"]):
 				os.unlink(img_data["full"])
+				print("Deleted full for %s" % img_data["name"])
 				r.lrem(key, 0, val)
+				print("Deleted value for %s" % img_data["name"])
 			else:
-				safe_files.append(img_data["full"])
-				safe_files.append(img_data["thumb"])
+				safe_files.append(os.path.normpath(img_data["full"]))
+				safe_files.append(os.path.normpath(img_data["thumb"]))
 
 thumbdirs = [name for name in os.listdir("./server/images/thumbs/") if os.path.isdir(os.path.join("./server/images/thumbs/",name))]
 fulldirs = [name for name in os.listdir("./server/images/full/") if os.path.isdir(os.path.join("./server/images/full/",name))]
 
 rooms = {}
 
+print("SAFE FILES: ")
+print(safe_files)
 for d in thumbdirs:
-	images = os.listdir(os.path.join("./server/images/thumbs/", d))
+	images = os.listdir(os.path.join(os.getcwd(),"server/images/thumbs/", d))
 	for img in images:
-		full_img = os.path.join("./server/images/thumbs/", d, img)
-		print(full_img)
+		full_img = os.path.normpath(os.path.join(os.getcwd(), "server/images/thumbs/", d, img))
 		if full_img not in safe_files:
 			os.unlink(full_img)
+			print("Deleted %s" % full_img)
 
 for d in fulldirs:
-	images = os.listdir(os.path.join("./server/images/full/", d))
+	images = os.listdir(os.path.join(os.getcwd(), "server/images/full/", d))
 	for img in images:
-		full_img = os.path.join("./server/images/full/", d, img)
+		full_img = os.path.normpath(os.path.join(os.getcwd(), "server/images/full/", d, img))
 		print(full_img)
 		if full_img not in safe_files:
 			os.unlink(full_img)
+			print("Deleted %s" % full_img)
 
