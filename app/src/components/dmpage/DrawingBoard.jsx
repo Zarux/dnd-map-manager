@@ -188,7 +188,7 @@ export default class DrawingBoard extends Component {
             height: window.innerHeight,
             width: "69%",
             backgroundColor: "white",
-            overflow: "auto"
+            overflow: "scroll"
         };
         const shapeButtonStyle = {
             width: 10,
