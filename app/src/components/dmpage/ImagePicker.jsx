@@ -21,8 +21,12 @@ export default class ImagePicker extends Component{
     }
 
     componentDidMount(){
-        console.log("Requesting thumbnails");
-        socket.emit("get-thumbnails");
+        socket.on("joined-room", () => {
+            console.log("Joined room");
+            console.log("Requesting thumbnails");
+            socket.emit("get-thumbnails");
+        })
+
     }
 
     render(){

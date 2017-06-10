@@ -17,9 +17,9 @@ const client = redis.createClient({
 io.sockets.on('connection', function (socket) {
 
     socket.on("join-room", data => {
-        console.log("Client joined", socket.mainRoom);
         socket.join(data.room);
         socket.mainRoom = data.room;
+        console.log("Client joined", socket.mainRoom);
         const fileDir = `${__dirname}/images/full/${socket.mainRoom}`;
         const thumbDir = `${__dirname}/images/thumbs/${socket.mainRoom}`;
         if (!fs.existsSync(fileDir)){
@@ -39,6 +39,7 @@ io.sockets.on('connection', function (socket) {
                 client.set(`images:room:${socket.mainRoom}:default`, defaultImage);
                 client.rpush(`images:room:${socket.mainRoom}`, JSON.stringify(image_object));
             }
+            socket.emit("joined-room")
         })
     });
 
@@ -77,9 +78,10 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on("get-thumbnails", data => {
-
+        console.log("got request for thumbnails");
         client.lrange(`images:room:${socket.mainRoom}`, 0, -1, (err, message) => {
             if (err) return err;
+            console.log("Thumbnails found");
             const files = [];
             const fileNames = [];
             const data = message.map(x => {
