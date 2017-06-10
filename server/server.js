@@ -61,6 +61,10 @@ io.sockets.on('connection', function (socket) {
                 fs.write(fd, file.file, null, 'Binary', (err, written, buff) => {
                     fs.close(fd, () => {
                         thumbnail.ensureThumbnail(file.name, 200, null, (err, thumbName) => {
+                            if(err){
+                                console.log(err);
+                                fs.unlink(fileName);
+                            }
                             const image_object = {
                                 filename: file.name,
                                 thumb: `${thumbDir}/${thumbName}`,
