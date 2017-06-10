@@ -17,6 +17,7 @@ const client = redis.createClient({
 io.sockets.on('connection', function (socket) {
 
     socket.on("join-room", data => {
+        console.log("Client joined", socket.mainRoom);
         socket.join(data.room);
         socket.mainRoom = data.room;
         const fileDir = `${__dirname}/images/full/${socket.mainRoom}`;
@@ -85,10 +86,6 @@ io.sockets.on('connection', function (socket) {
                 return JSON.parse(x);
             });
 
-            /*data.sort((a, b) => {
-                return fs.statSync(a.thumb).mtime.getTime() + fs.statSync(b.thumb).mtime.getTime();
-            });*/
-
             for(let i = 0; i < data.length; i++){
                 const content = fs.readFileSync(data[i].thumb);
                 if(!fileNames.includes(data[i].filename)) {
@@ -96,7 +93,7 @@ io.sockets.on('connection', function (socket) {
                     files.push({name: data[i].filename, image: content.toString('base64')});
                 }
             }
-
+            console.log("Sending ", files.length, "thumbnails to room", socket.mainRoom);
             socket.emit("thumbnails", {
                 images: files
             });
@@ -115,6 +112,7 @@ io.sockets.on('connection', function (socket) {
             if(!reply) return;
             fs.readFile(reply, (err, fileData) => {
                 if (err) throw err;
+                console.log("Sending full image to room", socket.mainRoom);
                 socket.emit("full-image", {
                     image: fileData.toString('base64'),
                     name: data.name
