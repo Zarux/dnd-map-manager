@@ -65,12 +65,16 @@ rooms = {}
 for d in thumbdirs:
 	images = os.listdir(os.path.join("./server/images/thumbs/", d))
 	for img in images:
-		if img not in safe_files:
-			os.unlink(os.path.join("./server/images/thumbs/", d, img))
+		full_img = os.path.join("./server/images/thumbs/", d, img)
+		print(full_img)
+		if full_img not in safe_files:
+			os.unlink(full_img)
 
 for d in fulldirs:
 	images = os.listdir(os.path.join("./server/images/full/", d))
 	for img in images:
-		if img not in safe_files:
-			os.unlink(os.path.join("./server/images/full/", d, img))
+		full_img = os.path.join("./server/images/full/", d, img)
+		print(full_img)
+		if full_img not in safe_files:
+			os.unlink(full_img)
 
