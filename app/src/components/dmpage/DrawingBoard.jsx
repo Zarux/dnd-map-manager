@@ -114,9 +114,8 @@ export default class DrawingBoard extends Component {
             height: this.paper.parentNode.offsetHeight - Math.round(this.paper.parentNode.offsetHeight/14),
             width: this.paper.parentNode.offsetWidth
         });
-
         fabric.Object.prototype.transparentCorners = false;
-
+        this.canvas.freeDrawingBrush.width = 100;
         socket.on('full-image', data => {
             if(!this.canvas) return;
             const img = new Image();
@@ -174,11 +173,15 @@ export default class DrawingBoard extends Component {
             overflow: "auto"
         };
         const shapeButtonStyle = {
-          width: "30px"
+            width: 10,
+            padding: 0,
+            margin: 0,
+            display: "table-cell"
         };
 
         const separatorStyle = {
-            height: "100%"
+            height: "100%",
+            width: 3
         };
         return (
             <div style={style}>
@@ -228,6 +231,17 @@ export default class DrawingBoard extends Component {
                                 this.canvas.isDrawingMode = !this.canvas.isDrawingMode;
                                 this.canvas.selection = !this.canvas.selection;
                                 this.setState({...this.state, drawingMode: this.canvas.isDrawingMode})
+                            }}
+                        />
+                        <input
+                            type="number"
+                            defaultValue={10}
+                            style={{
+                                width: 30
+                            }}
+                            readOnly={this.canvas ? !this.canvas.isDrawingMode : true}
+                            onChange={(event)=>{
+                                this.canvas.freeDrawingBrush.width = parseInt(event.target.value);
                             }}
                         />
                     </ToolbarGroup>
