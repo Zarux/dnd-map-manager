@@ -22,7 +22,9 @@ module.exports = {
         inline: true,
         contentBase: './app',
         historyApiFallback: true,
-        host: '0.0.0.0'
+        host: '0.0.0.0',
+        compress: true,
+        disableHostCheck: true
     },
 
     resolve: {
