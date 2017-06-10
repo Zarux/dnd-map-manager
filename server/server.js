@@ -80,6 +80,7 @@ io.sockets.on('connection', function (socket) {
         client.lrange(`images:room:${socket.mainRoom}`, 0, -1, (err, message) => {
             if (err) return err;
             const files = [];
+            const fileNames = [];
             const data = message.map(x => {
                 return JSON.parse(x);
             });
@@ -90,7 +91,10 @@ io.sockets.on('connection', function (socket) {
 
             for(let i = 0; i < data.length; i++){
                 const content = fs.readFileSync(data[i].thumb);
-                files.push({name: data[i].filename, image: content.toString('base64')})
+                if(!fileNames.includes(data[i].filename)) {
+                    fileNames.push(data[i].filename);
+                    files.push({name: data[i].filename, image: content.toString('base64')});
+                }
             }
 
             socket.emit("thumbnails", {
