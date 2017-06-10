@@ -10,14 +10,19 @@ export default class ImagePicker extends Component{
         this.state = {
             images: []
         };
-        socket.emit("get-thumbnails");
+
         socket.on("thumbnails", data => {
-            console.log(data);
+            console.log("Got thumbnails");
             this.setState({...this.state, images: data.images})
         });
         socket.on("file-saved", data => {
             socket.emit("get-thumbnails");
         })
+    }
+
+    componentDidMount(){
+        console.log("Requesting thumbnails");
+        socket.emit("get-thumbnails");
     }
 
     render(){
