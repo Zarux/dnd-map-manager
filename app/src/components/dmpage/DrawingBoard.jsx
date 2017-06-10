@@ -100,12 +100,24 @@ export default class DrawingBoard extends Component {
         this.canvas.renderAll.bind(this.canvas)();
     };
 
+    setFullImage = (data) => {
+        const img = new Image();
+        img.src = `data:image/jpeg;base64,${data.image}`;
+        img.onload = () => {
+            const fImg = new fabric.Image(img);
+            fImg.set({width: this.canvas.width, height: this.canvas.height, originX: 'left', originY: 'top'});
+            this.canvas.setBackgroundImage(fImg, this.canvas.renderAll.bind(this.canvas));
+        }
+
+    };
+
     componentDidUpdate(){
         if(this.gridOn){
             this.removeGrid();
             this.drawGrid();
         }
     }
+
     componentDidMount(){
 
         this.canvas = new fabric.Canvas('paper', {
@@ -114,21 +126,27 @@ export default class DrawingBoard extends Component {
             height: this.paper.parentNode.offsetHeight - Math.round(this.paper.parentNode.offsetHeight/14),
             width: this.paper.parentNode.offsetWidth
         });
+
         fabric.Object.prototype.transparentCorners = false;
         this.canvas.freeDrawingBrush.width = 10;
+
         socket.on('full-image', data => {
             if(!this.canvas) return;
-            const img = new Image();
-            img.src = `data:image/jpeg;base64,${data.image}`;
-            img.onload = () => {
-                const fImg = new fabric.Image(img);
-                fImg.set({width: this.canvas.width, height: this.canvas.height, originX: 'left', originY: 'top'});
-                this.canvas.setBackgroundImage(fImg, this.canvas.renderAll.bind(this.canvas))
+            if(data.cached){
+                this.setFullImage(sessionStorage.getItem(data.name));
+                return;
             }
+            this.setFullImage(data)
         });
-        socket.emit("get-full-image", {name: "../../white.png"});
+
+        if(sessionStorage.getItem("default")){
+            this.setFullImage(sessionStorage.getItem("default"))
+        }else{
+            socket.emit("get-full-image", {name: "default"});
+        }
+
         window.addEventListener("keyup", (event) => {
-            if(event.keyCode === 46){
+            if(event.keyCode === 46 || event.keyCode === 8){
                 if(this.canvas.getActiveObject()){
                     this.canvas.getActiveObject().remove();
                 }else if(this.canvas.getActiveGroup()){
@@ -168,7 +186,7 @@ export default class DrawingBoard extends Component {
     render(){
         const style = {
             height: window.innerHeight,
-            width: "70%",
+            width: "69%",
             backgroundColor: "white",
             overflow: "auto"
         };

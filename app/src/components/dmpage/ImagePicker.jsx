@@ -38,7 +38,11 @@ export default class ImagePicker extends Component{
                                 style={{margin:5}}
                                 onClick={
                                     ()=> {
-                                        socket.emit("get-full-image", {name: tile.name});
+                                        socket.emit("get-full-image",
+                                            {
+                                                name: tile.name,
+                                                cached: sessionStorage.getItem(tile.name)
+                                            });
                                     }
                                 }
                             >

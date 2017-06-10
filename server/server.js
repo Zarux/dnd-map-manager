@@ -7,6 +7,11 @@ const io = require('socket.io').listen(server);
 const config = require("./config");
 const fs = require('fs');
 const Thumbnail = require('thumbnail');
+const redis = require("redis");
+const client = redis.createClient({
+    host: config.redisHost,
+    password: config.redisPassword
+});
 
 
 io.sockets.on('connection', function (socket) {
@@ -22,6 +27,18 @@ io.sockets.on('connection', function (socket) {
         if (!fs.existsSync(thumbDir)){
             fs.mkdirSync(thumbDir);
         }
+        client.get(`images:room:${socket.mainRoom}:default`, (err, reply) => {
+            if(!reply){
+                const defaultImage = `${__dirname}/images/white.png`;
+                const image_object = {
+                    filename: "default",
+                    thumb: defaultImage,
+                    full: defaultImage
+                };
+                client.set(`images:room:${socket.mainRoom}:default`, defaultImage);
+                client.rpush(`images:room:${socket.mainRoom}`, JSON.stringify(image_object));
+            }
+        })
     });
 
     socket.on("save-images", data => {
@@ -41,8 +58,16 @@ io.sockets.on('connection', function (socket) {
                 if (err) throw err;
                 fs.write(fd, file.file, null, 'Binary', (err, written, buff) => {
                     fs.close(fd, () => {
-                        thumbnail.ensureThumbnail(file.name, 100, null, (err, filename) => {
-                            socket.emit("file-saved");
+                        thumbnail.ensureThumbnail(file.name, 200, null, (err, thumbName) => {
+                            const image_object = {
+                                filename: file.name,
+                                thumb: `${thumbDir}/${thumbName}`,
+                                full: fileName
+                            };
+                            client.set(`images:room:${socket.mainRoom}:${file.name}`, fileName);
+                            client.rpush(`images:room:${socket.mainRoom}`, JSON.stringify(image_object), (err, message) => {
+                                socket.emit("file-saved");
+                            });
                         });
                     });
                 })
@@ -51,38 +76,48 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on("get-thumbnails", data => {
-        const thumbDir = `${__dirname}/images/thumbs/${socket.mainRoom}`;
-        const files = [
-            {name:"white-100.png", image: fs.readFileSync(`${__dirname}/images/white.png`).toString('base64')}
-        ];
-        fs.readdir(thumbDir, (err, filenames) => {
-            if (err) throw err;
-            filenames.sort((a, b) => {
-                return fs.statSync(`${thumbDir}/${a}`).mtime.getTime() + fs.statSync(`${thumbDir}/${b}`).mtime.getTime();
+
+        client.lrange(`images:room:${socket.mainRoom}`, 0, -1, (err, message) => {
+            if (err) return err;
+            const files = [];
+            const data = message.map(x => {
+                return JSON.parse(x);
             });
-            for(let i = 0; i < filenames.length; i++){
-                const content = fs.readFileSync(`${thumbDir}/${filenames[i]}`);
-                files.push({name: filenames[i], image: content.toString('base64')})
+
+            /*data.sort((a, b) => {
+                return fs.statSync(a.thumb).mtime.getTime() + fs.statSync(b.thumb).mtime.getTime();
+            });*/
+
+            for(let i = 0; i < data.length; i++){
+                const content = fs.readFileSync(data[i].thumb);
+                files.push({name: data[i].filename, image: content.toString('base64')})
             }
+
             socket.emit("thumbnails", {
                 images: files
             });
+
         });
+
     });
 
     socket.on("get-full-image", data => {
-        let fileName = data.name.replace(/(.*)-100\.(.*)/,"$1.$2");
-        const fileDir = `${__dirname}/images/full/${socket.mainRoom}`;
-        const thumbDir = `${__dirname}/images/thumbs/${socket.mainRoom}`;
-        if(fileName === "white.png"){
-           fileName = "../../white.png"
+        if(data.cached){
+            socket.emit("full-image", {cached: true, name: data.name});
+            return
         }
-        fs.readFile(`${fileDir}/${fileName}`, (err, data) => {
-            if (err) throw err;
-            socket.emit("full-image", {
-                image: data.toString('base64')
+
+        client.get(`images:room:${socket.mainRoom}:${data.name}`, (err, reply) => {
+            if(!reply) return;
+            fs.readFile(reply, (err, fileData) => {
+                if (err) throw err;
+                socket.emit("full-image", {
+                    image: fileData.toString('base64'),
+                    name: data.name
+                })
             })
-        })
+        });
+
     });
 
     socket.on("full-canvas", data => {
