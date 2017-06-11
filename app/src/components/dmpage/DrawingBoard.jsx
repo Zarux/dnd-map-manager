@@ -19,7 +19,7 @@ export default class DrawingBoard extends Component {
     resizeCanvas = () =>{
         this.canvas.setHeight(window.innerHeight);
         this.canvas.setWidth(window.innerWidth);
-        this.canvas.renderAll();
+        this.canvas.renderAll.bind(this.canvas)();
     };
 
     gridObjects = [];
@@ -123,7 +123,7 @@ export default class DrawingBoard extends Component {
         this.canvas = new fabric.Canvas('paper', {
             isDrawingMode: false,
             selection: true,
-            height: this.paper.parentNode.offsetHeight - Math.round(this.paper.parentNode.offsetHeight/14),
+            height: this.paper.parentNode.offsetHeight,
             width: this.paper.parentNode.offsetWidth
         });
 
@@ -144,7 +144,7 @@ export default class DrawingBoard extends Component {
         }else{
             socket.emit("get-full-image", {name: "default"});
         }
-
+        window.onresize = this.resizeCanvas;
         window.addEventListener("keyup", (event) => {
             if(event.keyCode === 46 || event.keyCode === 8){
                 if(this.canvas.getActiveObject()){
@@ -185,10 +185,10 @@ export default class DrawingBoard extends Component {
 
     render(){
         const style = {
-            height: window.innerHeight,
-            width: "69%",
+            height: window.innerHeight * 0.98,
+            width: (window.innerHeight * 0.98) * (16/9),
             backgroundColor: "white",
-            overflow: "scroll"
+            overflow: "hidden"
         };
         const shapeButtonStyle = {
             width: 10,
@@ -205,6 +205,11 @@ export default class DrawingBoard extends Component {
             <div style={style}>
                 <Toolbar>
                     <ToolbarGroup>
+                        <RaisedButton
+                            label="Change Image"
+                            style={{width:150}}
+                            onClick={this.props.openDrawer}
+                        />
                         <RaisedButton
                             label="Toggle grid"
                             style={{width:140}}

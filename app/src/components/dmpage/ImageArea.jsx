@@ -1,24 +1,28 @@
 import React, {Component} from 'react';
 import ImageUpload from './ImageUpload'
 import ImagePicker from './ImagePicker'
+import Drawer from 'material-ui/Drawer';
 
 export default class ImageArea extends Component {
     constructor(props) {
         super(props);
+        this.state = {
+            open: this.props.drawerOpen
+        }
     }
 
     render(){
-        const style = {
-            height: window.innerHeight,
-            width: "30%",
-            backgroundColor: "white",
-            border: "1px solid black"
-        };
+
         return (
-            <div style={style}>
-                <ImageUpload />
-                <ImagePicker />
-            </div>
+            <Drawer
+                docked={false}
+                width={"30%"}
+                open={this.props.drawerOpen}
+                onRequestChange={this.props.closeDrawer}
+            >
+                    <ImageUpload />
+                    <ImagePicker />
+            </Drawer>
         )
     }
 }

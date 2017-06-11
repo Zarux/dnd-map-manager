@@ -121,14 +121,18 @@ io.sockets.on('connection', function (socket) {
 
         client.get(`images:room:${socket.mainRoom}:${data.name}`, (err, reply) => {
             if(!reply) return;
-            fs.readFile(reply, (err, fileData) => {
-                if (err) throw err;
-                console.log("Sending full image to room", socket.mainRoom);
-                socket.emit("full-image", {
-                    image: fileData.toString('base64'),
-                    name: data.name
+            try {
+                fs.readFile(reply, (err, fileData) => {
+                    if (err) throw err;
+                    console.log("Sending full image to room", socket.mainRoom);
+                    socket.emit("full-image", {
+                        image: fileData.toString('base64'),
+                        name: data.name
+                    })
                 })
-            })
+            }catch(e){
+
+            }
         });
 
     });

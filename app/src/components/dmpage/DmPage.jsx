@@ -7,10 +7,21 @@ import DrawingBoard from './DrawingBoard'
 export default class DmPage extends Component {
     constructor(props) {
         super(props);
+        this.state = {
+            drawerOpen: false
+        };
         socket.emit("join-room",{
             room: this.props.match.params.room
         })
     }
+
+    openDrawer = () => {
+        this.setState({...this.state, drawerOpen: true})
+    };
+
+    closeDrawer = (status) => {
+        this.setState({...this.state, drawerOpen: status})
+    };
 
     render(){
         const style = {
@@ -20,8 +31,8 @@ export default class DmPage extends Component {
         };
         return (
             <div style={style}>
-                <ImageArea />
-                <DrawingBoard />
+                <ImageArea drawerOpen={this.state.drawerOpen}  closeDrawer={this.closeDrawer}/>
+                <DrawingBoard openDrawer={this.openDrawer}/>
             </div>
         )
     }
