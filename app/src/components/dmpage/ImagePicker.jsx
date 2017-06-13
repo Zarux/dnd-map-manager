@@ -53,6 +53,7 @@ export default class ImagePicker extends Component{
                         key={tile.id}
                         title={
                             <TextField
+                                id={`textinput_${tile.id}`}
                                 disabled={tile.id === 0 || tile.id === "0"}
                                 value={this.state.tileNames[tile.id]}
                                 onChange={event => {
@@ -73,7 +74,7 @@ export default class ImagePicker extends Component{
                                     tooltipPosition="top-left"
                                     disabled={tile.id === 0 || tile.id === "0"}
                                     onClick={()=> {
-                                        socket.emit("change-name", {id:tile.id, name: this.state.tileNames[tile.id]})
+                                        socket.emit("change-name", {id:tile.id, name: this.state.tileNames[tile.id]});
                                     }}
                                 >
                                     <Save/>
@@ -82,12 +83,8 @@ export default class ImagePicker extends Component{
                                     tooltip="Use"
                                     tooltipPosition="top-left"
                                     onClick={()=> {
-                                        socket.emit("get-full-image",
-                                            {
-                                                id: tile.id,
-                                                cached: false
-                                            });
-                                        }}
+                                        socket.emit("get-full-image", {id: tile.id, cached: false});
+                                    }}
                                 >
                                     <Input/>
                                 </IconButton>

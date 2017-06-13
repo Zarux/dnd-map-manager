@@ -64,7 +64,6 @@ export default class DrawingBoard extends Component {
 
     addShape = (type) => {
         if(!this.canvas) return;
-        console.log(this.fill);
         const fill = (!this.fill || this.fill === '#ffffff' ? 'rgba(0,0,0,0)' : this.fill);
         const stroke = (fill === 'rgba(0,0,0,0)' ? "black" : 'rgba(0,0,0,0)');
         let shape = null;
