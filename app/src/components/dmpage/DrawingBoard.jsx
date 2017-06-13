@@ -18,7 +18,7 @@ export default class DrawingBoard extends Component {
             showColor: false
         }
     }
-
+    cachedImages = {};
     resizeCanvas = () =>{
         this.canvas.setHeight(window.innerHeight);
         this.canvas.setWidth(window.innerWidth);
@@ -135,17 +135,19 @@ export default class DrawingBoard extends Component {
 
         socket.on('full-image', data => {
             if(!this.canvas) return;
-            if(data.cached){
-                this.setFullImage(sessionStorage.getItem(data.name));
+            if(data.cached && this.cachedImages[data.id]){
+                console.log("using cached", data.id);
+                this.setFullImage(this.cachedImages[data.id]);
                 return;
             }
+            this.cachedImages[data.id] = data;
             this.setFullImage(data)
         });
 
-        if(sessionStorage.getItem("default")){
-            this.setFullImage(sessionStorage.getItem("default"))
+        if(this.cachedImages["0"]){
+            this.setFullImage(this.cachedImages["0"])
         }else{
-            socket.emit("get-full-image", {name: "default"});
+            socket.emit("get-full-image", {id: 0});
         }
         window.onresize = this.resizeCanvas;
         window.addEventListener("keyup", (event) => {

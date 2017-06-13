@@ -16,7 +16,7 @@ export default class ImageArea extends Component {
         return (
             <Drawer
                 docked={false}
-                width={"30%"}
+                width={"40%"}
                 open={this.props.drawerOpen}
                 onRequestChange={this.props.closeDrawer}
             >

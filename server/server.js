@@ -28,16 +28,24 @@ io.sockets.on('connection', function (socket) {
         if (!fs.existsSync(thumbDir)){
             fs.mkdirSync(thumbDir);
         }
-        client.get(`images:room:${socket.mainRoom}:default`, (err, reply) => {
-            if(!reply){
+        client.exists(`images:room:${socket.mainRoom}:0:full`, (err, reply) => {
+            if(reply === 0){
+                const id = 0;
                 const defaultImage = `${__dirname}/images/white.png`;
-                const image_object = {
-                    filename: "default",
-                    thumb: defaultImage,
-                    full: defaultImage
+                const content = fs.readFileSync(`${defaultImage}`);
+                const image_object_full = {
+                    name: "default",
+                    file: content.toString("base64"),
+                    id: id
                 };
-                client.set(`images:room:${socket.mainRoom}:default`, defaultImage);
-                client.rpush(`images:room:${socket.mainRoom}`, JSON.stringify(image_object));
+                const image_object_thumb = {
+                    name: "default",
+                    file: content.toString("base64"),
+                    id: id
+                };
+                client.set(`images:room:${socket.mainRoom}:${id}:full`, JSON.stringify(image_object_full));
+                client.set(`images:room:${socket.mainRoom}:${id}:thumb`, JSON.stringify(image_object_thumb));
+                client.rpush(`images:room:${socket.mainRoom}`, id);
             }
             socket.emit("joined-room")
         })
@@ -46,6 +54,7 @@ io.sockets.on('connection', function (socket) {
     socket.on("save-images", data => {
         if(!data.files) return;
         Array.from(data.files).forEach((file) => {
+            if(!socket.mainRoom) return;
             const fileDir = `${__dirname}/images/full/${socket.mainRoom}`;
             const thumbDir = `${__dirname}/images/thumbs/${socket.mainRoom}`;
             const fileName = `${fileDir}/${file.name}`;
@@ -65,13 +74,26 @@ io.sockets.on('connection', function (socket) {
                                 console.log(err);
                                 fs.unlink(fileName);
                             }
-                            const image_object = {
-                                filename: file.name,
-                                thumb: `${thumbDir}/${thumbName}`,
-                                full: fileName
+                            const date = new Date();
+                            const id = date.getTime() + Math.floor(Math.random() * (9 - 1 + 1)) + 1;
+
+                            const image_object_full = {
+                                name: file.name,
+                                file: buff.toString("base64"),
+                                id: id
                             };
-                            client.set(`images:room:${socket.mainRoom}:${file.name}`, fileName);
-                            client.rpush(`images:room:${socket.mainRoom}`, JSON.stringify(image_object), (err, message) => {
+                            const content = fs.readFileSync(`${thumbDir}/${thumbName}`);
+                            const image_object_thumb = {
+                                name: file.name,
+                                file: content.toString("base64"),
+                                id: id
+                            };
+
+                            client.set(`images:room:${socket.mainRoom}:${id}:full`, JSON.stringify(image_object_full));
+                            client.set(`images:room:${socket.mainRoom}:${id}:thumb`, JSON.stringify(image_object_thumb));
+                            client.rpush(`images:room:${socket.mainRoom}`, id, (err, message) => {
+                                fs.unlink(fileName);
+                                fs.unlink(`${thumbDir}/${thumbName}`);
                                 socket.emit("file-saved");
                             });
                         });
@@ -87,54 +109,59 @@ io.sockets.on('connection', function (socket) {
             if (err) return err;
             console.log("Thumbnails found");
             const files = [];
-            const fileNames = [];
-            const data = message.map(x => {
-                return JSON.parse(x);
+            const promises = message.map(x => {
+                const key = `images:room:${socket.mainRoom}:${x}:thumb`;
+                return key_to_file_object(key).then(image_object => {x = image_object; return x}).catch(err => {return err})
             });
 
-            for(let i = 0; i < data.length; i++){
-                let content;
-                try {
-                    content = fs.readFileSync(data[i].thumb);
-                }catch(e){
-                    continue
-                }
-                if(!fileNames.includes(data[i].filename)) {
-                    fileNames.push(data[i].filename);
-                    files.push({name: data[i].filename, image: content.toString('base64')});
-                }
-            }
-            console.log("Sending ", files.length, "thumbnails to room", socket.mainRoom);
-            socket.emit("thumbnails", {
-                images: files
-            });
-
+            Promise.all(promises)
+                .then(results => {
+                    results.forEach(elem => {
+                        files.push({name: elem.name, image: elem.file, id: elem.id});
+                    });
+                    console.log("Sending ", files.length, "thumbnails to room", socket.mainRoom);
+                    socket.emit("thumbnails", {
+                        images: files
+                    });
+                })
+                .catch(e => {
+                    console.error(e);
+                });
         });
-
     });
 
     socket.on("get-full-image", data => {
         if(data.cached){
-            socket.emit("full-image", {cached: true, name: data.name});
+            socket.emit("full-image", {cached: true, id: data.id});
             return
         }
 
-        client.get(`images:room:${socket.mainRoom}:${data.name}`, (err, reply) => {
+        client.get(`images:room:${socket.mainRoom}:${data.id}:full`, (err, reply) => {
             if(!reply) return;
-            try {
-                fs.readFile(reply, (err, fileData) => {
-                    if (err) throw err;
-                    console.log("Sending full image to room", socket.mainRoom);
-                    socket.emit("full-image", {
-                        image: fileData.toString('base64'),
-                        name: data.name
-                    })
-                })
-            }catch(e){
-
-            }
+            const data = JSON.parse(reply);
+            socket.emit("full-image", {
+                image: data.file,
+                name: data.name,
+                id: data.id
+            });
         });
 
+    });
+    socket.on("change-name", data => {
+        if(!socket.mainRoom || data.id === 0 || data.id === "0") return;
+        client.get(`images:room:${socket.mainRoom}:${data.id}:thumb`, (err, reply) => {
+            if (err) return err;
+            const imgData = JSON.parse(reply);
+            imgData.name = data.name;
+            client.set(`images:room:${socket.mainRoom}:${data.id}:thumb`, JSON.stringify(imgData));
+        })
+    });
+    socket.on("delete-image", id => {
+        if(!socket.mainRoom || id === 0 || id === "0") return;
+        client.lrem(`images:room:${socket.mainRoom}`, 1, id);
+        client.del(`images:room:${socket.mainRoom}:${id}:full`);
+        client.del(`images:room:${socket.mainRoom}:${id}:thumb`);
+        socket.emit("file-saved");
     });
 
     socket.on("full-canvas", data => {
@@ -147,3 +174,11 @@ server.listen(config.serverPort, ()=>{
     console.log("Server running on", config.serverPort)
 });
 
+const key_to_file_object = key => {
+    return new Promise((resolve, reject) => {
+        client.get(key, (err, reply) => {
+            if(err) reject(err);
+            resolve(JSON.parse(reply))
+        })
+    })
+};
