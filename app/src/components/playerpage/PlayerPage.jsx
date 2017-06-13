@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import RaisedButton from 'material-ui/RaisedButton'
 import socket from '../../socket'
 
 
@@ -94,7 +95,7 @@ export default class PlayerPage extends Component {
         document.addEventListener('webkitfullscreenchange', this.resizeCanvas, false);
         document.addEventListener('mozfullscreenchange', this.resizeCanvas, false);
         socket.on("full-canvas", data => {
-            if(data.canvas){
+            if(data.canvas && window.screenTop && window.screenY){
                 this.canvas.loadFromJSON(data.canvas, ()=>{
                     this.old_canvas_height = this.canvas.height;
                     this.old_canvas_width = this.canvas.width;
@@ -109,14 +110,23 @@ export default class PlayerPage extends Component {
     render(){
 
         return (
-            <div>
-                <input
+            <div
+                style={{
+                    display: "table",
+                    margin: "0 auto",
+                    marginTop: "10%"
+                }}
+            >
+                <RaisedButton
                     style={{
-                        height: window.innerHeight - 100,
-                        width: window.innerWidth - 100
+                        height: window.innerHeight/2,
+                        width: window.innerWidth/2
                     }}
-                    type="button"
-                    value="Start"
+                    primary={true}
+                    label="Start"
+                    labelStyle={{
+                        fontSize: 84
+                    }}
                     onClick={this.fullCanvas}
                 />
                 <canvas
