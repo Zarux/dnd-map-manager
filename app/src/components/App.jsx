@@ -11,10 +11,14 @@ import LoginPage from './loginpage/LoginPage'
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
+
+const appPalette = {
+    primary1Color: "#1690DB",
+    textColor: cyan500
+
+};
 const theme = getMuiTheme({
-    palette: {
-        textColor: cyan500,
-    }
+    palette: appPalette
 });
 
 export default class App extends Component{

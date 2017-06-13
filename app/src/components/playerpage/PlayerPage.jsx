@@ -98,6 +98,8 @@ export default class PlayerPage extends Component {
                 this.canvas.loadFromJSON(data.canvas, ()=>{
                     this.old_canvas_height = this.canvas.height;
                     this.old_canvas_width = this.canvas.width;
+                    this.canvas.selection = false;
+                    this.canvas.isDrawingMode = false;
                     this.fixIt();
                 });
             }
