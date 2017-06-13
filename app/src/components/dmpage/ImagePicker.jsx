@@ -3,7 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import IconButton from 'material-ui/IconButton'
 import socket from '../../socket'
 import {GridList, GridTile} from 'material-ui/GridList';
-import Delete from 'material-ui-icons/delete'
+import Delete from 'material-ui-icons/Delete'
 import Input from 'material-ui-icons/Input'
 import Save from 'material-ui-icons/Save'
 import TextField from 'material-ui/TextField';

@@ -5,9 +5,9 @@ import FlatButton from "material-ui/FlatButton";
 import Slider from "material-ui/Slider";
 import socket from '../../socket'
 import {CompactPicker} from "react-color";
-import Stop from 'material-ui-icons/stop';
+import Stop from 'material-ui-icons/Stop';
 import PlayArrow from 'material-ui-icons/PlayArrow';
-import Lens from 'material-ui-icons/lens';
+import Lens from 'material-ui-icons/Lens';
 
 export default class DrawingBoard extends Component {
     constructor(props) {
