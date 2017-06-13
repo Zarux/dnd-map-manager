@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
 import IconButton from 'material-ui/IconButton'
 import socket from '../../socket'
 import {GridList, GridTile} from 'material-ui/GridList';
@@ -14,7 +13,8 @@ export default class ImagePicker extends Component{
         super(props);
         this.state = {
             images: [],
-            tileNames: {}
+            tileNames: {},
+            compact: false //maybe not have this
         };
 
         socket.on("thumbnails", data => {
@@ -27,7 +27,15 @@ export default class ImagePicker extends Component{
             this.setState({...this.state, images: data.images, tileNames: tileNames})
         });
         socket.on("file-saved", data => {
-            socket.emit("get-thumbnails");
+            if(data){
+                const images = this.state.images;
+                const tileNames = this.state.tileNames;
+                images.push(data);
+                tileNames[data.id] = data.name;
+                this.setState({...this.state, images: images, tileNames: tileNames});
+            }else{
+                socket.emit("get-thumbnails");
+            }
         })
     }
 
@@ -41,9 +49,20 @@ export default class ImagePicker extends Component{
     }
 
     render(){
+        const styles = {
+            saveButton: {
+            },
+            useButton: {
+            },
+            deleteButton: {
+                marginLeft: 20
+            }
+        };
+        this.state.compact ? styles.deleteButton.display = "none" : "";
         return (
             <GridList
                 cellHeight={160}
+                cols={this.state.compact ? 4 : 2}
                 style={{
                     padding: 30
                 }}
@@ -65,16 +84,17 @@ export default class ImagePicker extends Component{
                             />
                         }
                         titleStyle={{
-                            width: 100
+                            width: 110
                         }}
                         actionIcon={
                             <div>
                                 <IconButton
                                     tooltip="Save name"
                                     tooltipPosition="top-left"
+                                    style={styles.saveButton}
                                     disabled={tile.id === 0 || tile.id === "0"}
                                     onClick={()=> {
-                                        socket.emit("change-name", {id:tile.id, name: this.state.tileNames[tile.id]});
+                                        socket.emit("change-name", {id: tile.id, name: this.state.tileNames[tile.id]});
                                     }}
                                 >
                                     <Save/>
@@ -82,6 +102,7 @@ export default class ImagePicker extends Component{
                                 <IconButton
                                     tooltip="Use"
                                     tooltipPosition="top-left"
+                                    style={styles.useButton}
                                     onClick={()=> {
                                         socket.emit("get-full-image", {id: tile.id, cached: false});
                                     }}
@@ -91,10 +112,7 @@ export default class ImagePicker extends Component{
                                 <IconButton
                                     tooltip="Delete"
                                     tooltipPosition="top-left"
-                                    style={{
-                                        color:"red",
-                                        marginLeft: 30
-                                    }}
+                                    style={styles.deleteButton}
                                     disabled={tile.id === 0 || tile.id === "0"}
                                     onClick = {() => {
                                         if(confirm("Are you sure you want to delete image?")){

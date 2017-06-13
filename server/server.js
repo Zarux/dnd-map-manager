@@ -10,9 +10,17 @@ const Thumbnail = require('thumbnail');
 const redis = require("redis");
 const client = redis.createClient({
     host: config.redisHost,
-    password: config.redisPassword
+    password: config.redisPassword,
+    retry_strategy: (attempt, total_retry_time, error, times_connected) => {
+        return 100
+    }
 });
 
+
+
+client.on("error", (err) => {
+    console.log("Error " + err);
+});
 
 io.sockets.on('connection', function (socket) {
 
@@ -90,11 +98,13 @@ io.sockets.on('connection', function (socket) {
                             };
 
                             client.set(`images:room:${socket.mainRoom}:${id}:full`, JSON.stringify(image_object_full));
-                            client.set(`images:room:${socket.mainRoom}:${id}:thumb`, JSON.stringify(image_object_thumb));
+                            client.set(`images:room:${socket.mainRoom}:${id}:thumb`, JSON.stringify(image_object_thumb), (err) => {
+                                image_object_thumb.image = image_object_thumb.file;
+                                socket.emit("file-saved", image_object_thumb);
+                            });
                             client.rpush(`images:room:${socket.mainRoom}`, id, (err, message) => {
                                 fs.unlink(fileName);
                                 fs.unlink(`${thumbDir}/${thumbName}`);
-                                socket.emit("file-saved");
                             });
                         });
                     });

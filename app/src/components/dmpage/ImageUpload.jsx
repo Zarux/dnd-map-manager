@@ -50,6 +50,7 @@ export default class ImageUpload extends Component {
         }
         return (
             <div style={style}>
+                <span style={{marginLeft: 30}}>Upload: </span>
                 <RaisedButton
                     style={{
                         marginTop: "20px",
