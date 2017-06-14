@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
 import socket from '../../socket'
 import TextField from "material-ui/TextField";
+import FileUpload from 'material-ui-icons/FileUpload'
 
 export default class ImageUpload extends Component {
     constructor(props) {
@@ -77,7 +78,7 @@ export default class ImageUpload extends Component {
                             this.state.chosenImage ? this.state.chosenImage.value.replace(/.*\\/,"") : ""}
                 />
                 <RaisedButton
-                    label="Upload image"
+                    icon={<FileUpload />}
                     onClick={this.uploadImages}
                     style={uploadStyle}
                 />

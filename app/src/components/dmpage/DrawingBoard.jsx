@@ -16,7 +16,8 @@ import Edit from 'material-ui-icons/Edit';
 import OpenWith from 'material-ui-icons/OpenWith';
 import Palette from 'material-ui-icons/Palette';
 import Panorama from 'material-ui-icons/Panorama'
-import FileUpload from 'material-ui-icons/FileUpload'
+import Publish from 'material-ui-icons/Publish'
+import Clear from 'material-ui-icons/Clear'
 
 export default class DrawingBoard extends Component {
     constructor(props) {
@@ -197,10 +198,11 @@ export default class DrawingBoard extends Component {
             overflow: "hidden"
         };
         const shapeButtonStyle = {
-            width: 10,
             padding: 0,
             margin: 0,
-            display: "table-cell"
+            display: "table-cell",
+            minWidth: 40,
+            width: 50
         };
 
         const separatorStyle = {
@@ -240,8 +242,24 @@ export default class DrawingBoard extends Component {
                     </ToolbarGroup>
                     <ToolbarGroup>
                         <RaisedButton
-                            icon={<FileUpload/>}
+                            icon={<Publish/>}
                             onClick={this.sendFullImage}
+                        />
+                    </ToolbarGroup>
+                    <ToolbarSeparator style={separatorStyle} />
+                    <ToolbarGroup>
+                        <FlatButton
+                            style={{
+                                marginRight: 0,
+                                minWidth: 40,
+                                width: 40
+                            }}
+                            icon={<Clear/>}
+                            onClick={()=>{
+                                const bg = this.canvas.backgroundImage;
+                                this.canvas.clear();
+                                this.canvas.setBackgroundImage(bg, this.canvas.renderAll.bind(this.canvas));
+                            }}
                         />
                     </ToolbarGroup>
                     <ToolbarSeparator style={separatorStyle} />
