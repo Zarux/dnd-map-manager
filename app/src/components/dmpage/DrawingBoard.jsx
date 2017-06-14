@@ -3,7 +3,7 @@ import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from "material-ui/FlatButton";
 import Slider from "material-ui/Slider";
-import PopOver from "material-ui/PopOver";
+import Popover from "material-ui/Popover";
 import socket from '../../socket'
 import {CompactPicker} from "react-color";
 import Stop from 'material-ui-icons/Stop';
@@ -318,7 +318,7 @@ export default class DrawingBoard extends Component {
                                 this.setState({...this.state, penSize: event.target.value});
                             }}
                         />
-                        <PopOver
+                        <Popover
                             style={{
                                 width: 52,
                                 height: 200
@@ -353,7 +353,7 @@ export default class DrawingBoard extends Component {
                                 }}
                             />
                             </div>
-                        </PopOver>
+                        </Popover>
 
                         <FlatButton
                             label={this.state.drawingMode ? "Selection" : "FreeDraw"}
