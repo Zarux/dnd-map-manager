@@ -15,7 +15,7 @@ import GridOff from 'material-ui-icons/GridOff';
 import Edit from 'material-ui-icons/Edit';
 import OpenWith from 'material-ui-icons/OpenWith';
 import Palette from 'material-ui-icons/Palette';
-import Image from 'material-ui-icons/Image'
+import Panorama from 'material-ui-icons/Panorama'
 import FileUpload from 'material-ui-icons/FileUpload'
 
 export default class DrawingBoard extends Component {
@@ -30,7 +30,6 @@ export default class DrawingBoard extends Component {
             penSize: 10
         }
     }
-    cachedImages = {};
     resizeCanvas = () =>{
         this.canvas.setHeight(window.innerHeight);
         this.canvas.setWidth(window.innerWidth);
@@ -113,7 +112,7 @@ export default class DrawingBoard extends Component {
         this.canvas.renderAll.bind(this.canvas)();
     };
 
-    setFullImage = (data) => {
+    setFullImage = data => {
         const img = new Image();
         img.onload = () => {
             const fImg = new fabric.Image(img);
@@ -137,21 +136,11 @@ export default class DrawingBoard extends Component {
 
         socket.on('full-image', data => {
             if(!this.canvas) return;
-
-            if(data.cached && this.cachedImages[data.id]){
-                console.log("using cached", data.id);
-                this.setFullImage(this.cachedImages[data.id]);
-                return;
-            }
-            this.cachedImages[data.id] = data;
             this.setFullImage(data)
         });
 
-        if(this.cachedImages["0"]){
-            this.setFullImage(this.cachedImages["0"])
-        }else{
-            socket.emit("get-full-image", {id: 0});
-        }
+
+        socket.emit("get-full-image", {id: 0});
         window.onresize = this.resizeCanvas;
         window.addEventListener("keyup", (event) => {
             if(event.keyCode === 46 || event.keyCode === 8){
@@ -231,7 +220,7 @@ export default class DrawingBoard extends Component {
                 <Toolbar>
                     <ToolbarGroup>
                         <RaisedButton
-                            icon={<Image/>}
+                            icon={<Panorama />}
                             onClick={this.props.openDrawer}
                         />
                         <RaisedButton
