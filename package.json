@@ -24,7 +24,7 @@
     "material-components-web": "^0.12.1",
     "material-design-icons": "^3.0.1",
     "material-ui": "^0.18.3",
-    "material-ui-icons": "^0.18.3",
+    "material-ui-icons": "^1.0.0-alpha.3",
     "react": "^15.5.4",
     "react-color": "^2.11.1",
     "react-dom": "^15.5.4",
