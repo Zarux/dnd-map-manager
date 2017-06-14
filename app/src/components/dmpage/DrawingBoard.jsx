@@ -247,7 +247,7 @@ export default class DrawingBoard extends Component {
                             style={{
                                 minWidth: 80,
                             }}
-                            onClick={()=>{this.state.gridOn ? this.removeGrid() : this.drawGrid()}}
+                            onClick={()=>{this.state.gridOnIcon ? this.removeGrid() : this.drawGrid()}}
                         />
                         <Slider
                             value={this.state.cellWidth}
