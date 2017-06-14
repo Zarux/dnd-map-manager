@@ -3,11 +3,20 @@ import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from "material-ui/FlatButton";
 import Slider from "material-ui/Slider";
+import PopOver from "material-ui/PopOver";
 import socket from '../../socket'
 import {CompactPicker} from "react-color";
 import Stop from 'material-ui-icons/Stop';
-import PlayArrow from 'material-ui-icons/PlayArrow';
+import SignalCellular4Bar from 'material-ui-icons/SignalCellular4Bar';
 import Lens from 'material-ui-icons/Lens';
+import CheckBox from 'material-ui/Checkbox'
+import GridOn from 'material-ui-icons/GridOn';
+import GridOff from 'material-ui-icons/GridOff';
+import Edit from 'material-ui-icons/Edit';
+import OpenWith from 'material-ui-icons/OpenWith';
+import Palette from 'material-ui-icons/Palette';
+import Image from 'material-ui-icons/Image'
+import FileUpload from 'material-ui-icons/FileUpload'
 
 export default class DrawingBoard extends Component {
     constructor(props) {
@@ -15,7 +24,10 @@ export default class DrawingBoard extends Component {
         this.state = {
             cellWidth : 50,
             fillColor: null,
-            showColor: false
+            showColor: false,
+            gridOn : false,
+            sizeSliderOpen: false,
+            penSize: 10
         }
     }
     cachedImages = {};
@@ -26,7 +38,6 @@ export default class DrawingBoard extends Component {
     };
 
     gridObjects = [];
-    gridOn = false;
 
     drawGrid = () => {
         const cellWidth = this.state.cellWidth;
@@ -46,7 +57,7 @@ export default class DrawingBoard extends Component {
             this.canvas.add(line1);
             this.canvas.add(line2);
         }
-        this.gridOn = true;
+        this.setState({...this.state, gridOn: true});
         this.fill = null;
         this.canvas.renderAll.bind(this.canvas)();
     };
@@ -58,7 +69,7 @@ export default class DrawingBoard extends Component {
             }
         });
         this.gridObjects = [];
-        this.gridOn = false;
+        this.setState({...this.state, gridOn: false});
         this.canvas.renderAll.bind(this.canvas)();
     };
 
@@ -104,21 +115,13 @@ export default class DrawingBoard extends Component {
 
     setFullImage = (data) => {
         const img = new Image();
-        img.src = `data:image/jpeg;base64,${data.image}`;
         img.onload = () => {
             const fImg = new fabric.Image(img);
             fImg.set({width: this.canvas.width, height: this.canvas.height, originX: 'left', originY: 'top'});
             this.canvas.setBackgroundImage(fImg, this.canvas.renderAll.bind(this.canvas));
-        }
-
+        };
+        img.src = `data:image/jpeg;base64,${data.image}`;
     };
-
-    componentDidUpdate(){
-        if(this.gridOn){
-            this.removeGrid();
-            this.drawGrid();
-        }
-    }
 
     componentDidMount(){
 
@@ -134,6 +137,7 @@ export default class DrawingBoard extends Component {
 
         socket.on('full-image', data => {
             if(!this.canvas) return;
+
             if(data.cached && this.cachedImages[data.id]){
                 console.log("using cached", data.id);
                 this.setFullImage(this.cachedImages[data.id]);
@@ -187,6 +191,15 @@ export default class DrawingBoard extends Component {
         socket.emit("full-canvas", {canvas: this.canvas.toJSON()});
     };
 
+    componentDidUpdate(){
+        if(this.canvas && this.canvas.freeDrawingBrush){
+            this.canvas.freeDrawingBrush.width = parseInt(this.state.penSize);
+        }
+        if(isNaN(this.state.penSize)){
+            this.setState({...this.state, penSize: 10});
+        }
+    }
+
     render(){
         const style = {
             height: window.innerHeight * 0.98,
@@ -205,19 +218,26 @@ export default class DrawingBoard extends Component {
             height: "100%",
             width: 3
         };
+        const spanStyle = {
+            letterSpacing: 0,
+            textTransform: "uppercase",
+            fontWeight: 500,
+            fontSize: 14,
+            fontFamily: "Roboto, sans-serif",
+            color:"rgb(0, 188, 212)"
+        };
         return (
             <div style={style}>
                 <Toolbar>
                     <ToolbarGroup>
                         <RaisedButton
-                            label="Change Image"
-                            style={{width:150}}
+                            icon={<Image/>}
                             onClick={this.props.openDrawer}
                         />
                         <RaisedButton
-                            label="Toggle grid"
-                            style={{width:140}}
-                            onClick={()=>{this.gridOn ? this.removeGrid() : this.drawGrid()}}
+                            icon={this.state.gridOn ? <GridOff/> : <GridOn/>}
+                            style={{width:100}}
+                            onClick={()=>{this.state.gridOn ? this.removeGrid() : this.drawGrid()}}
                         />
                         <Slider
                             defaultValue={25}
@@ -231,7 +251,7 @@ export default class DrawingBoard extends Component {
                     </ToolbarGroup>
                     <ToolbarGroup>
                         <RaisedButton
-                            label="Show"
+                            icon={<FileUpload/>}
                             onClick={this.sendFullImage}
                         />
                     </ToolbarGroup>
@@ -251,31 +271,100 @@ export default class DrawingBoard extends Component {
 
                         <FlatButton
                             style={shapeButtonStyle}
-                            icon={<PlayArrow />}
+                            icon={<SignalCellular4Bar />}
                             onClick={()=>{this.addShape('triangle')}}
                         />
 
                         <ToolbarSeparator style={separatorStyle} />
+                        <span
+                            style={{
+                                marginLeft: 30,
+                                marginRight: 10,
+                                ...spanStyle
+                            }}
+                        >Live Draw
+                        </span>
+                        <CheckBox
+                            disabled={!this.canvas ? true : !this.canvas.isDrawingMode}
+                            style={{float:"right", width:"5%"}}
+                        />
+
+                        <span
+                            style={{
+                                marginLeft: 30,
+                                marginRight: 10,
+                                ...spanStyle
+                            }}
+                        >
+                            Pen size
+                        </span>
+                        <input
+                            type="text"
+                            pattern="\d*"
+                            value={this.state.penSize}
+                            disabled={this.canvas ? !this.canvas.isDrawingMode : true}
+                            style={{
+                                width: 30
+                            }}
+                            readOnly={this.canvas ? !this.canvas.isDrawingMode : true}
+                            onFocus={(event)=>{
+                                event.preventDefault();
+                                this.setState({
+                                    sizeSliderOpen: true,
+                                    sizeSliderAnchor: event.currentTarget,
+                                });
+                            }}
+                            onChange={(event)=>{
+                                this.setState({...this.state, penSize: event.target.value});
+                            }}
+                        />
+                        <PopOver
+                            style={{
+                                width: 52,
+                                height: 200
+                            }}
+                            open={this.state.sizeSliderOpen}
+                            anchorEl={this.state.sizeSliderAnchor}
+                            anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                            targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                            onRequestClose={()=>{
+                                this.setState({...this.state, sizeSliderOpen: false})
+                            }}
+                        >
+                            <div
+                                style={{
+                                    height: 200
+                                }}
+                            >
+                            <Slider
+                                axis="y"
+                                defaultValue={10}
+                                style={{
+                                    height: 120,
+                                    display: "table",
+                                    margin: "0 auto"
+                                }}
+                                value={this.state.penSize}
+                                min={1}
+                                max={100}
+                                step={1}
+                                onChange={(event, value)=>{
+                                    this.setState({...this.state, penSize: value})
+                                }}
+                            />
+                            </div>
+                        </PopOver>
+
                         <FlatButton
                             label={this.state.drawingMode ? "Selection" : "FreeDraw"}
+                            icon={this.state.drawingMode ? <OpenWith/> : <Edit/>}
                             onClick={()=>{
                                 this.canvas.isDrawingMode = !this.canvas.isDrawingMode;
                                 this.canvas.selection = !this.canvas.selection;
                                 this.setState({...this.state, drawingMode: this.canvas.isDrawingMode})
                             }}
                         />
-                        <input
-                            type="number"
-                            defaultValue={10}
-                            disabled={this.canvas ? !this.canvas.isDrawingMode : true}
-                            style={{
-                                width: 50
-                            }}
-                            readOnly={this.canvas ? !this.canvas.isDrawingMode : true}
-                            onChange={(event)=>{
-                                this.canvas.freeDrawingBrush.width = parseInt(event.target.value);
-                            }}
-                        />
+
                     </ToolbarGroup>
                     <ToolbarSeparator style={separatorStyle} />
                     <ToolbarGroup>
@@ -292,7 +381,7 @@ export default class DrawingBoard extends Component {
                             </div>
                         ): ""}
                         <FlatButton
-                            label="Color"
+                            icon={<Palette/>}
                             onClick={this.handleColorClick}
                         />
                     </ToolbarGroup>

@@ -14,7 +14,6 @@ export default class ImagePicker extends Component{
         this.state = {
             images: [],
             tileNames: {},
-            compact: false //maybe not have this
         };
 
         socket.on("thumbnails", data => {
@@ -58,11 +57,10 @@ export default class ImagePicker extends Component{
                 marginLeft: 20
             }
         };
-        this.state.compact ? styles.deleteButton.display = "none" : "";
         return (
             <GridList
                 cellHeight={160}
-                cols={this.state.compact ? 4 : 2}
+                cols={2}
                 style={{
                     padding: 30
                 }}
@@ -104,6 +102,7 @@ export default class ImagePicker extends Component{
                                     tooltipPosition="top-left"
                                     style={styles.useButton}
                                     onClick={()=> {
+                                        console.log("requesting full image");
                                         socket.emit("get-full-image", {id: tile.id, cached: false});
                                     }}
                                 >
