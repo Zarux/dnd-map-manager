@@ -85,7 +85,11 @@ export default class ImagePicker extends Component{
                             width: 110
                         }}
                         actionIcon={
-                            <div>
+                            <div
+                                style={{
+                                    minWidth: 170
+                                }}
+                            >
                                 <IconButton
                                     tooltip="Save name"
                                     tooltipPosition="top-left"

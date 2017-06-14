@@ -6,9 +6,9 @@ import Slider from "material-ui/Slider";
 import Popover from "material-ui/Popover";
 import socket from '../../socket'
 import {CompactPicker} from "react-color";
-import Stop from 'material-ui-icons/Stop';
-import SignalCellular4Bar from 'material-ui-icons/SignalCellular4Bar';
-import Lens from 'material-ui-icons/Lens';
+import CropDin from 'material-ui-icons/CropDin';
+import ChangeHistory from 'material-ui-icons/ChangeHistory';
+import PanoramaFishEye from 'material-ui-icons/PanoramaFishEye';
 import CheckBox from 'material-ui/Checkbox'
 import GridOn from 'material-ui-icons/GridOn';
 import GridOff from 'material-ui-icons/GridOff';
@@ -26,7 +26,7 @@ export default class DrawingBoard extends Component {
             cellWidth : 50,
             fillColor: null,
             showColor: false,
-            gridOn : false,
+            gridOnIcon: false,
             sizeSliderOpen: false,
             penSize: 10
         }
@@ -36,10 +36,10 @@ export default class DrawingBoard extends Component {
         this.canvas.setWidth(window.innerWidth);
         this.canvas.renderAll.bind(this.canvas)();
     };
-
+    gridOn = false;
     gridObjects = [];
 
-    drawGrid = () => {
+    drawGrid = (silent = false) => {
         const cellWidth = this.state.cellWidth;
         for (let x = 1; x < (this.canvas.width / 20); x++) {
             const line1 = new fabric.Line([cellWidth * x, 0, cellWidth * x, this.canvas.height], {
@@ -57,20 +57,31 @@ export default class DrawingBoard extends Component {
             this.canvas.add(line1);
             this.canvas.add(line2);
         }
-        this.setState({...this.state, gridOn: true});
+        if(!silent){
+            this.gridOn = true;
+            this.setState({...this.state, gridOnIcon: true});
+        }
         this.fill = null;
         this.canvas.renderAll.bind(this.canvas)();
     };
 
-    removeGrid = () => {
+    removeGrid = (silent = false) => {
         this.gridObjects.forEach((obj, key) => {
             if(obj && obj.type === 'line'){
                 this.canvas.remove(obj);
             }
         });
+        if(!silent){
+            this.gridOn = false;
+            this.setState({...this.state, gridOnIcon: false});
+        }
         this.gridObjects = [];
-        this.setState({...this.state, gridOn: false});
         this.canvas.renderAll.bind(this.canvas)();
+    };
+
+    updateGrid = () => {
+        this.removeGrid(true);
+        this.drawGrid(true);
     };
 
     addShape = (type) => {
@@ -180,8 +191,11 @@ export default class DrawingBoard extends Component {
     sendFullImage = () => {
         socket.emit("full-canvas", {canvas: this.canvas.toJSON()});
     };
-
     componentDidUpdate(){
+        if(this.gridOn){
+            this.updateGrid()
+        }
+
         if(this.canvas && this.canvas.freeDrawingBrush){
             this.canvas.freeDrawingBrush.width = parseInt(this.state.penSize);
         }
@@ -222,26 +236,33 @@ export default class DrawingBoard extends Component {
                 <Toolbar>
                     <ToolbarGroup>
                         <RaisedButton
+                            style={{
+                                minWidth: 80,
+                            }}
                             icon={<Panorama />}
                             onClick={this.props.openDrawer}
                         />
                         <RaisedButton
-                            icon={this.state.gridOn ? <GridOff/> : <GridOn/>}
-                            style={{width:100}}
+                            icon={this.state.gridOnIcon ? <GridOff/> : <GridOn/>}
+                            style={{
+                                minWidth: 80,
+                            }}
                             onClick={()=>{this.state.gridOn ? this.removeGrid() : this.drawGrid()}}
                         />
                         <Slider
-                            defaultValue={25}
                             value={this.state.cellWidth}
                             min={20}
                             max={120}
                             style={{width: 200, paddingLeft: "5%", paddingTop:"3%"}}
-                            step={1}
+                            step={2}
                             onChange={this.handleSliderChange}
                         />
                     </ToolbarGroup>
                     <ToolbarGroup>
                         <RaisedButton
+                            style={{
+                                minWidth: 80,
+                            }}
                             icon={<Publish/>}
                             onClick={this.sendFullImage}
                         />
@@ -252,9 +273,9 @@ export default class DrawingBoard extends Component {
                             style={{
                                 marginRight: 0,
                                 minWidth: 40,
-                                width: 40
                             }}
                             icon={<Clear/>}
+                            label="Clear objects"
                             onClick={()=>{
                                 const bg = this.canvas.backgroundImage;
                                 this.canvas.clear();
@@ -266,19 +287,19 @@ export default class DrawingBoard extends Component {
                     <ToolbarGroup>
                         <FlatButton
                             style={shapeButtonStyle}
-                            icon={<Stop />}
+                            icon={<CropDin />}
                             onClick={()=>{this.addShape('rect')}}
                         />
 
                         <FlatButton
                             style={shapeButtonStyle}
-                            icon={<Lens />}
+                            icon={<PanoramaFishEye />}
                             onClick={()=>{this.addShape('circle')}}
                         />
 
                         <FlatButton
                             style={shapeButtonStyle}
-                            icon={<SignalCellular4Bar />}
+                            icon={<ChangeHistory />}
                             onClick={()=>{this.addShape('triangle')}}
                         />
 
@@ -353,7 +374,7 @@ export default class DrawingBoard extends Component {
                                 }}
                                 value={this.state.penSize}
                                 min={1}
-                                max={100}
+                                max={200}
                                 step={1}
                                 onChange={(event, value)=>{
                                     this.setState({...this.state, penSize: value})
