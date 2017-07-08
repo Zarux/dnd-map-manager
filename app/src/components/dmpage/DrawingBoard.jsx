@@ -18,6 +18,7 @@ import Palette from 'material-ui-icons/Palette';
 import Panorama from 'material-ui-icons/Panorama'
 import Publish from 'material-ui-icons/Publish'
 import Clear from 'material-ui-icons/Clear'
+import Save from 'material-ui-icons/Save'
 
 export default class DrawingBoard extends Component {
     constructor(props) {
@@ -38,6 +39,27 @@ export default class DrawingBoard extends Component {
     };
     gridOn = false;
     gridObjects = [];
+
+    dataURItoBlob = dataURI => {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], {type: mimeString});
+    };
+
+    saveCanvas = () => {
+        console.log("Saving canvas");
+        socket.emit("save-images",
+            {files: [{
+                name: `${Math.random().toString(36).substring(7)}.png`,
+                file: this.dataURItoBlob(this.canvas.toDataURL('png'))
+            }]}
+        )
+    };
 
     drawGrid = (silent = false) => {
         const cellWidth = this.state.cellWidth;
@@ -265,6 +287,13 @@ export default class DrawingBoard extends Component {
                             }}
                             icon={<Publish/>}
                             onClick={this.sendFullImage}
+                        />
+                        <RaisedButton
+                            style={{
+                                minWidth: 80,
+                            }}
+                            icon={<Save/>}
+                            onClick={this.saveCanvas}
                         />
                     </ToolbarGroup>
                     <ToolbarSeparator style={separatorStyle} />

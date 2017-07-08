@@ -187,7 +187,7 @@ server.listen(config.serverPort, ()=>{
 const key_to_file_object = key => {
     return new Promise((resolve, reject) => {
         client.get(key, (err, reply) => {
-            if(err) reject(err);
+            if (err) reject(err);
             resolve(JSON.parse(reply))
         })
     })
