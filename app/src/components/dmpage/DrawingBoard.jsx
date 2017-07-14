@@ -33,7 +33,7 @@ export default class DrawingBoard extends Component {
         }
     }
     resizeCanvas = () =>{
-        this.canvas.setHeight(window.innerHeight);
+        this.canvas.setHeight(window.innerHeight - (window.innerHeight / 8));
         this.canvas.setWidth(window.innerWidth);
         this.canvas.renderAll.bind(this.canvas)();
     };
@@ -161,7 +161,7 @@ export default class DrawingBoard extends Component {
         this.canvas = new fabric.Canvas('paper', {
             isDrawingMode: false,
             selection: true,
-            height: this.paper.parentNode.offsetHeight,
+            height: this.paper.parentNode.offsetHeight - (this.paper.parentNode.offsetHeight / 9),
             width: this.paper.parentNode.offsetWidth
         });
 
@@ -312,7 +312,12 @@ export default class DrawingBoard extends Component {
                             }}
                         />
                     </ToolbarGroup>
-                    <ToolbarSeparator style={separatorStyle} />
+                </Toolbar>
+                <canvas
+                    id="paper"
+                    ref={ref => this.paper = ref}
+                />
+                <Toolbar>
                     <ToolbarGroup>
                         <FlatButton
                             style={shapeButtonStyle}
@@ -393,22 +398,22 @@ export default class DrawingBoard extends Component {
                                     height: 200
                                 }}
                             >
-                            <Slider
-                                axis="y"
-                                defaultValue={10}
-                                style={{
-                                    height: 120,
-                                    display: "table",
-                                    margin: "0 auto"
-                                }}
-                                value={this.state.penSize}
-                                min={1}
-                                max={200}
-                                step={1}
-                                onChange={(event, value)=>{
-                                    this.setState({...this.state, penSize: value})
-                                }}
-                            />
+                                <Slider
+                                    axis="y"
+                                    defaultValue={10}
+                                    style={{
+                                        height: 120,
+                                        display: "table",
+                                        margin: "0 auto"
+                                    }}
+                                    value={this.state.penSize}
+                                    min={1}
+                                    max={200}
+                                    step={1}
+                                    onChange={(event, value)=>{
+                                        this.setState({...this.state, penSize: value})
+                                    }}
+                                />
                             </div>
                         </Popover>
 
@@ -422,13 +427,10 @@ export default class DrawingBoard extends Component {
                             }}
                         />
 
-                    </ToolbarGroup>
-                    <ToolbarSeparator style={separatorStyle} />
-                    <ToolbarGroup>
                         {this.state.showColor ? (
                             <div style={{
-                                left: -300,
-                                top: 50,
+                                left: "100%",
+                                bottom: "30%",
                                 zIndex: 9999,
                                 position:"absolute"}}>
                                 <CompactPicker onChange={(color, event)=>{
@@ -443,10 +445,6 @@ export default class DrawingBoard extends Component {
                         />
                     </ToolbarGroup>
                 </Toolbar>
-                <canvas
-                    id="paper"
-                    ref={ref => this.paper = ref}
-                />
             </div>
         )
     }
