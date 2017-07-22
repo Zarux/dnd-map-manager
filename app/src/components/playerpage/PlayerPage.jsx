@@ -95,13 +95,16 @@ export default class PlayerPage extends Component {
         document.addEventListener('webkitfullscreenchange', this.resizeCanvas, false);
         document.addEventListener('mozfullscreenchange', this.resizeCanvas, false);
         socket.on("full-canvas", data => {
-            if(data.canvas && window.screenTop && window.screenY){
+            console.log("Got canvas");
+            console.log(data.canvas, window.screenX, window.screenY);
+            if(data.canvas && window.screenY === 0){
                 this.canvas.loadFromJSON(data.canvas, ()=>{
                     this.old_canvas_height = this.canvas.height;
                     this.old_canvas_width = this.canvas.width;
                     this.canvas.selection = false;
                     this.canvas.isDrawingMode = false;
                     this.fixIt();
+                    console.log("Used canvas")
                 });
             }
         });
